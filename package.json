@@ -1,0 +1,25 @@
+{
+  "name": "openai_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robertako97/OpenAI_Test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/robertako97/OpenAI_Test/issues"
+  },
+  "homepage": "https://github.com/robertako97/OpenAI_Test#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "inquirer": "^8.2.4",
+    "langchain": "^0.0.208"
+  }
+}
