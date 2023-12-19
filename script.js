@@ -42,7 +42,7 @@ const formatInstructions = parser.getFormatInstructions();
 // Create an instance of PromptTemplate
 const promptTemplate = new PromptTemplate({
   template:
-    "You are a javascript expert and will answer the user’s coding questions as thoroughly as possible.\n{format_instructions}\nQuestion: {question}",
+    "You are a javascript expert and will answer the user coding questions as thoroughly as possible.\n{format_instructions}\nQuestion: {question}",
   inputVariables: ["question"],
   partialVariables: { format_instructions: formatInstructions },
 });
@@ -53,7 +53,13 @@ const promptFunc = async (input) => {
     const formattedPrompt = promptTemplate.format({ question: input });
     const res = await model.call(formattedPrompt);
     const parsedResponse = await parser.parse(res); // Parse the response
-    console.log(parsedResponse);
+    if (parsedResponse && parsedResponse.code) {
+      // Replace newline characters in the code property
+      const modifiedCode = parsedResponse.code.replace(/\n/g, "");
+      console.log({ ...parsedResponse, code: modifiedCode });
+    } else {
+      console.log(parsedResponse);
+    }
   } catch (err) {
     console.error(err);
   }
