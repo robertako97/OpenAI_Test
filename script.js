@@ -1,6 +1,7 @@
 require("dotenv").config();
 const inquirer = require("inquirer");
 const { OpenAI } = require("langchain/llms/openai");
+const { StructuredOutputParser } = require("langchain/output_parsers");
 
 // Setup OpenAI model
 const model = new OpenAI({
@@ -11,9 +12,10 @@ const model = new OpenAI({
 
 // Define your PromptTemplate structure
 class PromptTemplate {
-  constructor({ template, inputVariables }) {
+  constructor({ template, inputVariables, partialVariables = {} }) {
     this.template = template;
     this.inputVariables = inputVariables;
+    this.partialVariables = partialVariables;
   }
 
   format(variables) {
@@ -21,15 +23,28 @@ class PromptTemplate {
     this.inputVariables.forEach((variable) => {
       prompt = prompt.replace(`{${variable}}`, variables[variable]);
     });
+    for (const [key, value] of Object.entries(this.partialVariables)) {
+      prompt = prompt.replace(`{${key}}`, value);
+    }
     return prompt;
   }
 }
 
+// Create a parser instance and define the names and descriptions of the output variables
+const parser = StructuredOutputParser.fromNamesAndDescriptions({
+  code: "Javascript code that answers the user's question",
+  explanation: "detailed explanation of the example code provided",
+});
+
+// Get the format instructions
+const formatInstructions = parser.getFormatInstructions();
+
 // Create an instance of PromptTemplate
 const promptTemplate = new PromptTemplate({
   template:
-    "You are a javascript expert and will answer the user’s coding questions thoroughly as possible.\nQuestion: {question}",
+    "You are a javascript expert and will answer the user’s coding questions as thoroughly as possible.\n{format_instructions}\nQuestion: {question}",
   inputVariables: ["question"],
+  partialVariables: { format_instructions: formatInstructions },
 });
 
 // Function to generate prompt and call OpenAI model
@@ -37,7 +52,8 @@ const promptFunc = async (input) => {
   try {
     const formattedPrompt = promptTemplate.format({ question: input });
     const res = await model.call(formattedPrompt);
-    console.log(res);
+    const parsedResponse = await parser.parse(res); // Parse the response
+    console.log(parsedResponse);
   } catch (err) {
     console.error(err);
   }
@@ -54,10 +70,9 @@ const init = () => {
       },
     ])
     .then((inquirerResponse) => {
-      promptFunc(inquirerResponse.name); // Pass the response to promptFunc
+      promptFunc(inquirerResponse.name);
     });
 };
 
 // Call init function
 init();
-``;
